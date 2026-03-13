@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>💀 QTL</title>
+    <style>
+        /* === QTL Premium Theme === */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --board-bg: rgba(31, 41, 55, 0.7);
+            --panel-bg: rgba(17, 24, 39, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.3);
+            --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            --tile-radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            padding: clamp(12px, 3vw, 24px);
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: clamp(1.8em, 5vw, 2.5em);
+            font-weight: 800;
+            background: linear-gradient(to right, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        #advice {
+            text-align: center;
+            font-size: clamp(1.1em, 3vw, 1.4em);
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--accent-glow);
+            min-height: 1.5em;
+        }
+
+        /* === Responsive Container === */
+        .game-container {
+            display: grid;
+            grid-template-areas:
+                "stats stats"
+                "board eval"
+                "controls controls";
+            grid-template-columns: minmax(300px, 450px) minmax(250px, 300px);
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Large Screens: 3-Column Layout */
+        @media (min-width: 1100px) {
+            .game-container {
+                grid-template-areas:
+                    "stats board eval"
+                    "controls board eval";
+                grid-template-columns: 280px 1fr 300px;
+                align-items: start;
+            }
+
+            .controls {
+                margin-top: 0;
+            }
+        }
+
+        /* Small Screens: Stack Vertically */
+        @media (max-width: 850px) {
+            .game-container {
+                grid-template-areas:
+                    "stats"
+                    "board"
+                    "eval"
+                    "controls";
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+        }
+
+        /* === Premium Panels (Glassmorphism) === */
+        .stats-panel,
+        .evaluation-panel,
+        .controls {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow-premium);
+        }
+
+        .stats-panel {
+            grid-area: stats;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .high-score {
+            color: #f59e0b;
+        }
+
+        /* === Board Design === */
+        .board {
+            grid-area: board;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 12px;
+            background: var(--board-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            aspect-ratio: 1;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border-radius: var(--tile-radius);
+            background: rgba(255, 255, 255, 0.05);
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .tile-inner {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(1.2em, 5vw, 1.8em);
+            font-weight: 800;
+            border-radius: var(--tile-radius);
+            color: #fff;
+            user-select: none;
+            z-index: 2;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Tile Gradients */
+        .tile-inner[data-val="1"] {
+            background: linear-gradient(45deg, #475569, #64748b);
+        }
+
+        .tile-inner[data-val="2"] {
+            background: linear-gradient(45deg, #2563eb, #3b82f6);
+        }
+
+        .tile-inner[data-val="3"] {
+            background: linear-gradient(45deg, #7c3aed, #8b5cf6);
+        }
+
+        .tile-inner[data-val="4"] {
+            background: linear-gradient(45deg, #db2777, #ec4899);
+        }
+
+        .tile-inner[data-val="5"] {
+            background: linear-gradient(45deg, #ea580c, #f97316);
+        }
+
+        .tile-inner[data-val="6"] {
+            background: linear-gradient(45deg, #ca8a04, #eab308);
+        }
+
+        .tile-inner[data-val="7"] {
+            background: linear-gradient(45deg, #059669, #10b981);
+        }
+
+        .tile-inner[data-val="8"] {
+            background: linear-gradient(45deg, #0891b2, #06b6d4);
+        }
+
+        .tile-inner[data-val="9"] {
+            background: linear-gradient(45deg, #e11d48, #f43f5e);
+        }
+
+        .tile-inner[data-val="10"] {
+            background: linear-gradient(45deg, #6d28d9, #7c3aed);
+        }
+
+        .tile-inner[data-val="11"] {
+            background: linear-gradient(45deg, #b45309, #d97706);
+        }
+
+        .tile-inner[data-val="12"] {
+            background: linear-gradient(45deg, #be123c, #dc2626);
+        }
+
+        .tile-inner[data-val="13"] {
+            background: linear-gradient(45deg, #d97706, #fbbf24);
+            color: #000;
+        }
+
+        /* === Evaluation Panel === */
+        .evaluation-panel {
+            grid-area: eval;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .evaluation-title {
+            font-weight: 700;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .evaluation-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .eval-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .eval-card.best {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .eval-card .eval-dir {
+            font-size: 1.4em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .eval-card .eval-score {
+            color: var(--text-primary);
+            font-size: 0.9em;
+            font-weight: 700;
+        }
+
+        #chosenMove {
+            text-align: center;
+            font-size: 1.4em;
+            font-weight: 800;
+            color: var(--accent);
+            padding: 8px 0;
+            min-height: 1.5em;
+        }
+
+        .performance-info {
+            text-align: center;
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* === Controls & UI Elements === */
+        .controls {
+            grid-area: controls;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            min-width: 90px;
+        }
+
+        .tile-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tile-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .tile-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tile-btn.selected {
+            border-color: var(--accent);
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn.green {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn.blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .btn.red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            outline: none;
+            accent-color: var(--accent);
+        }
+
+        /* Responsive spacing for mobile */
+        @media (max-width: 500px) {
+            body {
+                padding: 12px;
+            }
+
+            .stats-panel,
+            .evaluation-panel,
+            .controls {
+                padding: 15px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .tile-inner {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>💀 QTL</h1>
+    <div id="advice">—</div>
+
+    <div class="game-container">
+
+        <!-- STATS -->
+        <div class="stats-panel">
+            <div class="stat-item">
+                <div class="stat-value" id="scoreVal">0</div>
+                <div class="stat-label">Score</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value high-score" id="bestVal">0</div>
+                <div class="stat-label">Best</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="movesVal">0</div>
+                <div class="stat-label">Moves</div>
+            </div>
+        </div>
+
+        <!-- BOARD -->
+        <div id="board" class="board"></div>
+
+        <!-- AI EVALUATION PANEL -->
+        <div class="evaluation-panel">
+            <div class="evaluation-title">🤖 QTL Evaluation</div>
+            <div class="evaluation-grid" id="evalGrid">
+                <div class="eval-card" id="eval-left">
+                    <div class="eval-dir">⬅️</div>
+                    <div class="eval-score" id="score-left">—</div>
+                </div>
+                <div class="eval-card" id="eval-right">
+                    <div class="eval-dir">➡️</div>
+                    <div class="eval-score" id="score-right">—</div>
+                </div>
+                <div class="eval-card" id="eval-up">
+                    <div class="eval-dir">⬆️</div>
+                    <div class="eval-score" id="score-up">—</div>
+                </div>
+                <div class="eval-card" id="eval-down">
+                    <div class="eval-dir">⬇️</div>
+                    <div class="eval-score" id="score-down">—</div>
+                </div>
+            </div>
+            <div id="chosenMove">—</div>
+            <div class="performance-info" id="perfInfo">Waiting for move…</div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="controls">
+            <!-- وضع الإعداد: اختر الرقم وانقر على خلية -->
+            <div id="setupControls">
+                <div class="control-row">
+                    <span class="control-label">Place tile:</span>
+                    <div class="tile-buttons" id="tileButtons">
+                        <button class="tile-btn selected" data-val="1">1</button>
+                        <button class="tile-btn" data-val="2">2</button>
+                        <button class="tile-btn" data-val="3">3</button>
+                        <button class="tile-btn" data-val="4">4</button>
+                        <button class="tile-btn" data-val="5">5</button>
+                        <button class="tile-btn" data-val="6">6</button>
+                        <button class="tile-btn" data-val="7">7</button>
+                        <button class="tile-btn" data-val="8">8</button>
+                        <button class="tile-btn" data-val="9">9</button>
+                        <button class="tile-btn" data-val="10">10</button>
+                        <button class="tile-btn" data-val="11">11</button>
+                        <button class="tile-btn" data-val="12">12</button>
+                        <button class="tile-btn" data-val="13">13</button>
+                    </div>
+                </div>
+                <div class="control-row button-row">
+                    <button class="btn green" onclick="startSolver()">🤖 Start AI</button>
+                    <button class="btn blue" onclick="analyzeOnly()">🔍 Analyze</button>
+                    <button class="btn red" onclick="resetGame()">↻ Reset</button>
+                </div>
+            </div>
+
+            <!-- وضع المُحَلِّل: AI يلعب تلقائيًا وينتظر tile -->
+            <div id="solverControls" class="hidden">
+                <div class="control-row">
+                    <span class="control-label">Speed (ms):</span>
+                    <input type="range" id="speedSlider" min="100" max="1500" step="100" value="600"
+                        oninput="speed=+this.value; document.getElementById('speedVal').textContent=this.value">
+                    <span id="speedVal">600</span>ms
+                </div>
+                <div class="control-row button-row">
+                    <button class="btn green" id="playBtn" onclick="togglePlay()">⏸ Pause</button>
+                    <button class="btn blue" onclick="stepOnce()">⏭ Step</button>
+                    <button class="btn red" onclick="backToSetup()">✏️ Setup</button>
+                </div>
+                <div class="control-row">
+                    <span class="control-label" style="color:var(--accent)" id="waitLabel"></span>
+                    <!-- أزرار وضع tile بعد حركة AI -->
+                    <div class="tile-buttons hidden" id="waitTileButtons">
+                        <button class="tile-btn selected" data-val="1">1</button>
+                        <button class="tile-btn" data-val="2">2</button>
+                        <button class="tile-btn" data-val="3">3</button>
+                        <button class="tile-btn" data-val="4">4</button>
+                        <button class="tile-btn" data-val="5">5</button>
+                        <button class="tile-btn" data-val="6">6</button>
+                        <button class="tile-btn" data-val="7">7</button>
+                        <button class="tile-btn" data-val="8">8</button>
+                        <button class="tile-btn" data-val="9">9</button>
+                        <button class="tile-btn" data-val="10">10</button>
+                        <button class="tile-btn" data-val="11">11</button>
+                        <button class="tile-btn" data-val="12">12</button>
+                        <button class="tile-btn" data-val="13">13</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let board = Array.from({ length: 4 }, () => Array(4).fill(0));
+        let score = 0, bestScore = 0, moves = 0;
+        let selectedTile = 1;
+
+        /* ===== GAME STATE ===== */
+        let setupMode = true;    // true = user sets up tiles
+        let waitingForTile = false;   // true = AI moved, waiting for user tile
+        let pendingBoard = null;
+        let pendingScore = 0;
+        let lastMove = '';
+        let gameOver = false;
+        let isPlaying = false;
+        let playInterval = null;
+        let speed = 600;     // ms بين الخطوات
+        let startTime = 0;
+        let selectedWaitVal = 1;       // الـ tile المختار في وضع الانتظار
+
+        /* ===== AI CONFIG ===== */
+        const aiDepth = 3;   // عمق البحث (زوده للذكاء أكثر، لكن أبطأ)
+        const prob1 = 0.9; // احتمال ظهور tile=1 مقابل tile=2
+
+        /* ===== TILE COLORS ===== */
+        const tileColors = {
+            1: '#4b5563', 2: '#3b82f6', 3: '#8b5cf6', 4: '#ec4899',
+            5: '#f97316', 6: '#eab308', 7: '#10b981', 8: '#06b6d4',
+            9: '#f43f5e', 10: '#7c3aed', 11: '#d97706', 12: '#dc2626',
+            13: '#fbbf24'
+        };
+
+        /* ===== RENDER ===== */
+        function render(src) {
+            src = src || board;
+            const el = document.getElementById('board');
+            el.innerHTML = '';
+            for (let r = 0; r < 4; r++)
+                for (let c = 0; c < 4; c++) {
+                    const v = src[r][c];
+
+                    // Slot container (static grid cell)
+                    const slot = document.createElement('div');
+                    slot.className = 'cell';
+                    slot.addEventListener('click', () => handleCellClick(r, c));
+
+                    if (v) {
+                        // Moving content
+                        const inner = document.createElement('div');
+                        inner.className = 'tile-inner';
+                        inner.textContent = v;
+                        inner.setAttribute('data-val', v);
+                        inner.style.background = tileColors[v] || '#dc2626';
+                        if (v === 12) inner.style.color = '#fff';
+                        if (v === 13) inner.style.color = '#111';
+                        slot.appendChild(inner);
+                    }
+
+                    el.appendChild(slot);
+                }
+            updateStats();
+        }
+
+        /* ===== UPDATE DISPLAY ===== */
+        function updateDisplay(state) {
+            const advice = document.getElementById('advice');
+            if (state === 'thinking') {
+                advice.textContent = '🤔 AI thinking…';
+            } else if (gameOver) {
+                advice.textContent = 'Game Over 😵';
+                document.getElementById('chosenMove').textContent = '💀';
+                document.getElementById('playBtn') && (document.getElementById('playBtn').textContent = '▶️ Play');
+            } else if (waitingForTile) {
+                advice.textContent = lastMove + ' → انقر على خلية فارغة لوضع tile';
+                document.getElementById('waitLabel').textContent = '👆 ضع tile:';
+                document.getElementById('waitTileButtons').classList.remove('hidden');
+            } else {
+                document.getElementById('waitLabel').textContent = '';
+                document.getElementById('waitTileButtons').classList.add('hidden');
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('scoreVal').textContent = score;
+            document.getElementById('bestVal').textContent = bestScore;
+            document.getElementById('movesVal').textContent = moves;
+        }
+
+        /* ===== RESET ===== */
+        function resetGame() {
+            board = Array.from({ length: 4 }, () => Array(4).fill(0));
+            score = 0; moves = 0;
+            setupMode = true; waitingForTile = false; gameOver = false;
+            isPlaying = false; clearInterval(playInterval);
+            pendingBoard = null; pendingScore = 0;
+            document.getElementById('advice').textContent = '—';
+            document.getElementById('chosenMove').textContent = '—';
+            document.getElementById('perfInfo').textContent = 'Waiting for move…';
+            document.getElementById('setupControls').classList.remove('hidden');
+            document.getElementById('solverControls').classList.add('hidden');
+            clearEvalCards();
+            render();
+        }
+
+        function clearEvalCards() {
+            ['left', 'right', 'up', 'down'].forEach(d => {
+                document.getElementById('eval-' + d).classList.remove('best');
+                document.getElementById('score-' + d).textContent = '—';
+            });
+        }
+
+        /* ===== MOVES ===== */
+        function moveLeft(b) {
+            const newB = b.map(r => r.slice());
+            let moved = false, sc = 0;
+            for (let i = 0; i < 4; i++) {
+                let arr = newB[i].filter(v => v !== 0);
+                for (let k = 0; k < arr.length - 1; k++) {
+                    if (arr[k] === arr[k + 1] && arr[k] < 12) { arr[k]++; arr[k + 1] = 0; sc += arr[k]; }
+                }
+                arr = arr.filter(v => v !== 0);
+                while (arr.length < 4) arr.push(0);
+                if (arr.toString() !== newB[i].toString()) moved = true;
+                newB[i] = arr;
+            }
+            return { board: newB, moved, score: sc };
+        }
+        const reverse = b => b.map(r => r.slice().reverse());
+        const transpose = b => { const t = Array.from({ length: 4 }, () => Array(4).fill(0)); for (let i = 0; i < 4; i++)for (let j = 0; j < 4; j++)t[i][j] = b[j][i]; return t; };
+        const moveRight = b => { const r = reverse(b); const m = moveLeft(r); return { board: reverse(m.board), moved: m.moved, score: m.score }; };
+        const moveUp = b => { const t = transpose(b); const m = moveLeft(t); return { board: transpose(m.board), moved: m.moved, score: m.score }; };
+        const moveDown = b => { const t = transpose(b); const r = reverse(t); const m = moveLeft(r); return { board: transpose(reverse(m.board)), moved: m.moved, score: m.score }; };
+
+        /* ===== EVALUATE (Minimax-ready) ===== */
+        function evaluateBoard(b) {
+            let score = 0;
+
+            let maxTile = 0;
+            let empty = 0;
+
+            // === احصائيات عامة ===
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const v = b[i][j];
+                    if (v === 0) empty++;
+                    if (v > maxTile) maxTile = v;
+                }
+            }
+
+            // 🟢 فراغ = حرية دمج
+            score += empty * 150;
+
+            // 👑 أكبر رقم في زاوية = أفضل شيء ممكن
+            const corners = [b[0][0], b[0][3], b[3][0], b[3][3]];
+            if (corners.includes(maxTile)) {
+                score += maxTile * 3000;
+            } else {
+                score -= maxTile * 1500;
+            }
+
+            // 🐍 ترتيب Snake قوي
+            const weights = [
+                [16, 15, 14, 13],
+                [9, 10, 11, 12],
+                [8, 7, 6, 5],
+                [1, 2, 3, 4]
+            ];
+
+            for (let i = 0; i < 4; i++)
+                for (let j = 0; j < 4; j++)
+                    score += b[i][j] * weights[i][j];
+
+            // ⚡ مكافأة القيم المتساوية المتجاورة (فرصة دمج)
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (b[i][j] !== 0 && b[i][j] === b[i][j + 1]) {
+                        score += b[i][j] * 800;
+                        if (b[i][j] >= maxTile - 1) score += 5000;
+                    }
+                }
+            }
+
+            for (let j = 0; j < 4; j++) {
+                for (let i = 0; i < 3; i++) {
+                    if (b[i][j] !== 0 && b[i][j] === b[i + 1][j]) {
+                        score += b[i][j] * 800;
+                        if (b[i][j] >= maxTile - 1) score += 5000;
+                    }
+                }
+            }
+
+            // ❌ عقوبة للفروق الكبيرة (تمنع الدمج)
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (b[i][j] && b[i][j + 1])
+                        score -= Math.abs(b[i][j] - b[i][j + 1]) * 10;
+                }
+            }
+
+            for (let j = 0; j < 4; j++) {
+                for (let i = 0; i < 3; i++) {
+                    if (b[i][j] && b[i + 1][j])
+                        score -= Math.abs(b[i][j] - b[i + 1][j]) * 10;
+                }
+            }
+
+            return score;
+        }
+
+        function isGameOver(b) {
+            for (let i = 0; i < 4; i++)
+                for (let j = 0; j < 4; j++) {
+                    if (b[i][j] === 0) return false;
+                    if (j < 3 && b[i][j] === b[i][j + 1]) return false;
+                    if (i < 3 && b[i][j] === b[i + 1][j]) return false;
+                }
+            return true;
+        }
+
+        /* ===== MINIMAX + ALPHA-BETA ===== */
+        function minimax(b, depth, isMaximizing, alpha, beta) {
+            if (depth === 0 || isGameOver(b)) return evaluateBoard(b);
+
+            const moves = [moveLeft, moveRight, moveUp, moveDown];
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (const mv of moves) {
+                    const res = mv(b);
+                    if (res.moved) {
+                        const evalScore = minimax(res.board, depth - 1, false, alpha, beta);
+                        maxEval = Math.max(maxEval, evalScore);
+                        alpha = Math.max(alpha, evalScore);
+                        if (beta <= alpha) break;
+                    }
+                }
+                return maxEval;
+            } else {
+                // دور "الطبيعة": وضع tile جديدة في خلية فارغة
+                const emptyCells = [];
+                for (let i = 0; i < 4; i++)
+                    for (let j = 0; j < 4; j++)
+                        if (b[i][j] === 0) emptyCells.push([i, j]);
+                if (emptyCells.length === 0) return evaluateBoard(b);
+
+                let total = 0;
+                for (const [r, c] of emptyCells) {
+                    const b1 = b.map(row => row.slice()); b1[r][c] = 1;
+                    const b2 = b.map(row => row.slice()); b2[r][c] = 2;
+                    total += prob1 * minimax(b1, depth - 1, true, alpha, beta)
+                        + (1 - prob1) * minimax(b2, depth - 1, true, alpha, beta);
+                }
+                return total / emptyCells.length;
+            }
+        }
+
+        /* ===== BEST MOVE (Minimax) ===== */
+        const MOVE_DEFS = [
+            { fn: moveLeft, name: '⬅️ LEFT', key: 'left' },
+            { fn: moveRight, name: '➡️ RIGHT', key: 'right' },
+            { fn: moveUp, name: '⬆️ UP', key: 'up' },
+            { fn: moveDown, name: '⬇️ DOWN', key: 'down' },
+        ];
+
+        function getBestMove() {
+            let bestMv = null, bestSc = -Infinity;
+            for (const m of MOVE_DEFS) {
+                const res = m.fn(board);
+                if (res.moved) {
+                    const sc = minimax(res.board, aiDepth, false, -Infinity, Infinity);
+                    if (sc > bestSc) { bestSc = sc; bestMv = { ...m, s: sc }; }
+                }
+            }
+            return bestMv;
+        }
+
+        function analyzeBoard() {
+            clearEvalCards();
+            const results = [];
+            for (const m of MOVE_DEFS) {
+                const res = m.fn(board);
+                const sc = res.moved ? minimax(res.board, aiDepth, false, -Infinity, Infinity) : null;
+                document.getElementById('score-' + m.key).textContent = sc !== null ? sc : 'N/A';
+                results.push({ ...m, s: sc, moved: res.moved });
+            }
+            return results;
+        }
+
+        function analyzeOnly() {
+            const t0 = performance.now();
+            const results = analyzeBoard();
+            const best = results.filter(r => r.moved).sort((a, b) => b.s - a.s)[0];
+            if (best) {
+                document.getElementById('eval-' + best.key).classList.add('best');
+                document.getElementById('chosenMove').textContent = best.name;
+            }
+            document.getElementById('perfInfo').textContent =
+                `Analysis in ${(performance.now() - t0).toFixed(1)}ms`;
+            document.getElementById('advice').textContent = best ? best.name + ' (suggested)' : 'No moves!';
+        }
+
+        /* ===== HANDLE CELL CLICK ===== */
+        function handleCellClick(r, c) {
+            if (setupMode) {
+                // وضع أو إزالة الرقم
+                board[r][c] = (board[r][c] === selectedTile) ? 0 : selectedTile;
+                render();
+                updateStats();
+            } else if (waitingForTile && pendingBoard && pendingBoard[r][c] === 0) {
+                placeTile(r, c);
+            }
+        }
+
+        /* ===== START SOLVER ===== */
+        function startSolver() {
+            const hasAny = board.some(row => row.some(v => v !== 0));
+            if (!hasAny) { document.getElementById('advice').textContent = '⚠️ ضع tile أولاً!'; return; }
+            setupMode = false;
+            document.getElementById('setupControls').classList.add('hidden');
+            document.getElementById('solverControls').classList.remove('hidden');
+            isPlaying = true;
+            document.getElementById('playBtn').textContent = '⏸ Pause';
+            updateDisplay();
+            setTimeout(() => stepMove(), 300);
+        }
+
+        function backToSetup() {
+            isPlaying = false; clearInterval(playInterval);
+            setupMode = true; waitingForTile = false; gameOver = false;
+            document.getElementById('setupControls').classList.remove('hidden');
+            document.getElementById('solverControls').classList.add('hidden');
+            document.getElementById('advice').textContent = '✏️ Setup mode — انقر على الخلايا';
+            updateStats();
+        }
+
+        function togglePlay() {
+            if (gameOver) return;
+            isPlaying = !isPlaying;
+            document.getElementById('playBtn').textContent = isPlaying ? '⏸ Pause' : '▶️ Play';
+            if (isPlaying && !waitingForTile) stepMove();
+        }
+
+        function stepOnce() {
+            if (gameOver || waitingForTile) return;
+            const saved = isPlaying;
+            isPlaying = false;
+            stepMove().then(() => { isPlaying = saved; });
+        }
+
+        /* ===== PLACE TILE (بعد حركة AI) ===== */
+        function placeTile(r, c) {
+            board = pendingBoard.map(row => row.slice());
+            board[r][c] = selectedWaitVal;
+            score += pendingScore;
+            if (score > bestScore) bestScore = score;
+            waitingForTile = false;
+            pendingBoard = null;
+            render();
+            updateStats();
+            updateDisplay();
+            if (isPlaying && !gameOver) setTimeout(() => stepMove(), speed);
+        }
+
+        /* ===== STEP MOVE (async) ===== */
+        async function stepMove() {
+            if (gameOver || waitingForTile || setupMode) return;
+
+            updateDisplay('thinking');
+            startTime = performance.now();
+
+            await new Promise(res => setTimeout(res, 80));
+
+            // حساب نقاط كل اتجاه
+            clearEvalCards();
+            let bestMv = null, bestSc = -Infinity;
+            for (const m of MOVE_DEFS) {
+                const res = m.fn(board);
+                if (res.moved) {
+                    const sc = minimax(res.board, aiDepth, false, -Infinity, Infinity);
+                    document.getElementById('score-' + m.key).textContent = Math.round(sc);
+                    if (sc > bestSc) { bestSc = sc; bestMv = { ...m, res }; }
+                } else {
+                    document.getElementById('score-' + m.key).textContent = 'N/A';
+                }
+            }
+
+            const elapsed = (performance.now() - startTime).toFixed(1);
+
+            if (!bestMv) {
+                gameOver = true; isPlaying = false;
+                updateDisplay();
+                return;
+            }
+
+            document.getElementById('eval-' + bestMv.key).classList.add('best');
+            document.getElementById('chosenMove').textContent = bestMv.name;
+            document.getElementById('perfInfo').textContent = `Move in ${elapsed}ms`;
+
+            // حركة بصرية ثم انتظار tile
+            await animateMove(bestMv.name, board, bestMv.res.board);
+
+            pendingBoard = bestMv.res.board;
+            pendingScore = bestMv.res.score;
+            waitingForTile = true;
+            lastMove = bestMv.name;
+            moves++;
+
+            updateDisplay();
+            render(pendingBoard); // نرسم اللوحة الجديدة بعد ما الأرقام توصل
+        }
+
+        /* ===== ANIMATE MOVE ===== */
+        function animateMove(direction, fromBoard, toBoard) {
+            return new Promise(resolve => {
+                const boardEl = document.getElementById('board');
+                const cells = Array.from(boardEl.children);
+                const size = cells[0]?.offsetWidth || 64;
+                const step = size + 8; // 8px is the gap
+
+                // احسب وجهة كل خانة بدقة (أرقام الصفوف والأعمدة)
+                const mapping = computeMapping(direction, fromBoard);
+
+                cells.forEach((cell, idx) => {
+                    const inner = cell.querySelector('.tile-inner');
+                    if (!inner) return; // لا يوجد رقم يتحرك
+
+                    const r = Math.floor(idx / 4), c = idx % 4;
+                    const dest = mapping[r][c];
+                    if (!dest) return;
+
+                    const dr = dest.r2 - r;
+                    const dc = dest.c2 - c;
+
+                    if (dr === 0 && dc === 0) return; // لم تتحرك
+
+                    inner.style.transition = 'transform 0.18s ease';
+                    inner.style.transform = `translate(${dc * step}px, ${dr * step}px)`;
+                });
+
+                setTimeout(() => {
+                    cells.forEach(c => {
+                        const inner = c.querySelector('.tile-inner');
+                        if (inner) {
+                            inner.style.transition = '';
+                            inner.style.transform = '';
+                        }
+                    });
+                    resolve();
+                }, 200);
+            });
+        }
+
+        /* حساب خريطة حركة كل خانة: (r,c) → { r2, c2 } */
+        function computeMapping(direction, fromBoard) {
+            const map = Array.from({ length: 4 }, () => Array(4).fill(null));
+            const isHoriz = direction.includes('LEFT') || direction.includes('RIGHT');
+            const reversed = direction.includes('RIGHT') || direction.includes('DOWN');
+
+            for (let line = 0; line < 4; line++) {
+                const indices = reversed ? [3, 2, 1, 0] : [0, 1, 2, 3];
+                let writePos = reversed ? 3 : 0;
+                let prevSrcIdx = null;
+                let prevMerged = false;
+
+                for (const idx of indices) {
+                    const r = isHoriz ? line : idx;
+                    const c = isHoriz ? idx : line;
+                    const val = fromBoard[r][c];
+                    if (val === 0) continue;
+
+                    const rPrev = isHoriz ? line : prevSrcIdx;
+                    const cPrev = isHoriz ? prevSrcIdx : line;
+                    const prevVal = prevSrcIdx !== null ? fromBoard[rPrev][cPrev] : null;
+
+                    if (prevSrcIdx !== null && prevVal === val && !prevMerged) {
+                        const mergePos = writePos - (reversed ? -1 : 1);
+                        map[r][c] = isHoriz ? { r2: line, c2: mergePos } : { r2: mergePos, c2: line };
+                        prevMerged = true;
+                    } else {
+                        map[r][c] = isHoriz ? { r2: line, c2: writePos } : { r2: writePos, c2: line };
+                        prevSrcIdx = idx;
+                        prevMerged = false;
+                        writePos += reversed ? -1 : 1;
+                    }
+                }
+            }
+            return map;
+        }
+
+
+        /* ===== LEGACY doAIMove (single step, still usable) ===== */
+        function doAIMove() {
+            if (!setupMode) { stepOnce(); return; }
+            // في setup mode: تحليل فقط
+            analyzeOnly();
+        }
+
+        /* ===== TILE SELECTOR (setup mode) ===== */
+        document.getElementById('tileButtons').addEventListener('click', e => {
+            const btn = e.target.closest('.tile-btn');
+            if (!btn) return;
+            document.querySelectorAll('#tileButtons .tile-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedTile = parseInt(btn.dataset.val);
+        });
+
+        /* ===== TILE SELECTOR (wait mode) ===== */
+        document.getElementById('waitTileButtons').addEventListener('click', e => {
+            const btn = e.target.closest('.tile-btn');
+            if (!btn) return;
+            document.querySelectorAll('#waitTileButtons .tile-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedWaitVal = parseInt(btn.dataset.val);
+        });
+
+        resetGame();
+    </script>
+
+</body>
+
+</html>
