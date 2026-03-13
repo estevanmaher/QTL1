@@ -1,0 +1,14 @@
+# System Files
+install.log
+uninst.exe
+Engine/
+androidfs_7.1.2/
+
+# Redundant versions
+ultra-ai-solver.html
+ultra-ai-solver1.html
+
+# IDE/Editor files
+.vscode/
+.idea/
+.DS_Store
